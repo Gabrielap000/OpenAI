@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-# Load your dataset (replace 'your_dataset.csv' with your actual file)
+# Load your dataset
 data = pd.read_csv('Training_data_uhi_index 2025-02-04.csv')
 
 # Check for missing values
