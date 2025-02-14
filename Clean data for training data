@@ -1,0 +1,63 @@
+import pandas as pd
+import numpy as np
+
+# Load your dataset (replace 'your_dataset.csv' with your actual file)
+data = pd.read_csv('your_dataset.csv')
+
+# Check for missing values
+missing_values = data.isnull().sum()
+print("Missing Values:\n", missing_values)
+
+# Option 1: Drop rows with missing values
+data_cleaned = data.dropna()
+
+# Check data types
+data_types = data_cleaned.dtypes
+print("\nData Types:\n", data_types)
+
+# Convert data types if necessary
+data_cleaned['datetime'] = pd.to_datetime(data_cleaned['datetime'])  # Ensure datetime is in datetime format
+data_cleaned['Longitude'] = data_cleaned['Longitude'].astype(float)
+data_cleaned['Latitude'] = data_cleaned['Latitude'].astype(float)
+data_cleaned['UHI Index'] = data_cleaned['UHI Index'].astype(float)
+
+# Check for duplicates
+duplicates = data_cleaned.duplicated().sum()
+print("\nNumber of Duplicates:", duplicates)
+
+# Remove duplicates
+data_cleaned = data_cleaned.drop_duplicates()
+
+# Check for valid Longitude and Latitude ranges
+valid_longitude = data_cleaned[(data_cleaned['Longitude'] >= -180) & (data_cleaned['Longitude'] <= 180)]
+valid_latitude = valid_longitude[(valid_longitude['Latitude'] >= -90) & (valid_longitude['Latitude'] <= 90)]
+
+# Keep only valid entries
+data_cleaned = valid_latitude
+
+# Identify outliers using IQR method for UHI Index
+Q1 = data_cleaned['UHI Index'].quantile(0.25)
+Q3 = data_cleaned['UHI Index'].quantile(0.75)
+IQR = Q3 - Q1
+
+# Define bounds for outliers
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+# Filter out outliers
+data_cleaned = data_cleaned[(data_cleaned['UHI Index'] >= lower_bound) & (data_cleaned['UHI Index'] <= upper_bound)]
+
+# Check for datetime range
+start_date = pd.to_datetime('2021-07-24 15:00:00')
+end_date = pd.to_datetime('2021-07-24 16:00:00')
+
+data_cleaned = data_cleaned[(data_cleaned['datetime'] >= start_date) & (data_cleaned['datetime'] <= end_date)]
+
+# Final review of the cleaned dataset
+print("\nCleaned Data Info:")
+print(data_cleaned.info())
+print("\nCleaned Data Description:")
+print(data_cleaned.describe())
+
+
+data_cleaned.to_csv('cleaned_dataset.csv', index=False)
